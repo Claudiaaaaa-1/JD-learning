@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>京东商详页 · 信息载体与取证预习</title>
+<style>
+:root{
+  --bg:#0f1218; --panel:#171c25; --panel2:#1e2531; --line:#2b3340;
+  --tx:#e9edf4; --tx2:#9ba6b6; --tx3:#6f7b8c;
+  --blue:#6ea8fe; --blue-dim:rgba(110,168,254,.14);
+  --amber:#eab069; --amber-dim:rgba(234,176,105,.14);
+  --red:#e2685f; --green:#5cc19b;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;font-size:14px;line-height:1.7;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1440px;margin:0 auto;padding:26px 28px 60px}
+header.top{margin-bottom:22px}
+h1{font-size:22px;font-weight:600;margin:0 0 6px;letter-spacing:.3px}
+.sub{color:var(--tx2);font-size:13px;margin:0}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.chip{font-size:11.5px;color:var(--tx2);border:1px solid var(--line);background:var(--panel);padding:3px 10px;border-radius:20px}
+.chip.hl{color:var(--blue);border-color:rgba(110,168,254,.4);background:var(--blue-dim)}
+.layout{display:grid;grid-template-columns:420px minmax(0,1fr);gap:26px;align-items:start}
+@media(max-width:980px){.layout{grid-template-columns:1fr}.phone-shell{margin:0 auto}}
+
+/* ---------- 手机框 ---------- */
+.phone-shell{width:420px;height:860px;border-radius:42px;background:#000;border:9px solid #232833;box-shadow:0 24px 70px rgba(0,0,0,.6),0 0 0 1px #38404e;position:relative;overflow:hidden}
+.screen{position:absolute;inset:0;background:#fff;overflow:hidden}
+.scroll{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;padding-bottom:112px}
+.scroll::-webkit-scrollbar{width:0}
+.page-canvas{position:relative;width:100%}
+.page-canvas>img{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none}
+
+/* 固定状态栏与吸顶导航 */
+.chrome{position:absolute;top:0;left:0;right:0;z-index:20;pointer-events:none;background:transparent;transition:background .22s}
+.chrome.solid{background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.08)}
+.chrome.solid .status{background:#fff;text-shadow:none}
+.status{height:38px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:12.5px;font-weight:600;color:#111;background:linear-gradient(180deg,rgba(255,255,255,.88),rgba(255,255,255,.35));text-shadow:0 0 4px rgba(255,255,255,.95);transition:background .22s}
+.status.solid{background:#fff}
+.status .icons{display:flex;align-items:center;gap:5px;font-size:11px}
+.bat{width:22px;height:11px;border:1.4px solid #111;border-radius:3px;position:relative;display:inline-flex;align-items:center;padding-left:2px;font-size:8px;font-weight:700}
+.bat:after{content:"";position:absolute;right:-3.5px;width:2px;height:5px;background:#111;border-radius:0 2px 2px 0}
+.sig{display:inline-flex;align-items:flex-end;gap:1.5px;height:10px}
+.sig i{width:2.5px;background:#111;border-radius:1px;display:block}
+.navrow{height:50px;display:flex;align-items:center;gap:9px;padding:0 12px;background:transparent;transition:background .22s}
+.navrow.solid{background:#fff;border-bottom:1px solid #eceef2}
+.back{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.72);display:flex;align-items:center;justify-content:center;flex:0 0 auto;color:#222;font-size:17px;pointer-events:auto;cursor:pointer}
+.navrow.solid .back{background:transparent}
+.search{flex:1;height:31px;border-radius:16px;background:rgba(255,255,255,.78);display:none;align-items:center;padding:0 11px;color:#8a8f99;font-size:12px;gap:6px}
+.navrow.solid .search{display:flex;background:#f3f4f6}
+.navicons{display:flex;gap:9px;color:#222;font-size:15px;margin-left:auto}
+.navrow.solid .navicons{margin-left:0}
+.mini{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.72);display:flex;align-items:center;justify-content:center;font-size:12px}
+.navrow.solid .mini{background:transparent}
+.tabs{display:flex;background:#fff;padding:0 6px 7px;gap:0;border-bottom:1px solid #eceef2;opacity:0;height:0;overflow:hidden;transition:opacity .2s,height .2s}
+.tabs.on{opacity:1;height:34px}
+.tabs div{flex:1;text-align:center;font-size:12.5px;color:#666;padding-top:4px;cursor:pointer;pointer-events:auto}
+.tabs div.active{color:#111;font-weight:600;position:relative}
+.tabs div.active:after{content:"";position:absolute;bottom:0;left:38%;right:38%;height:2px;background:#e1251b;border-radius:2px}
+
+/* 吸底购买栏 */
+.bottombar{position:absolute;bottom:0;left:0;right:0;z-index:22;background:#fff;box-shadow:0 -2px 10px rgba(0,0,0,.06)}
+.promobar{height:29px;background:#fff5e8;display:flex;align-items:center;gap:6px;padding:0 12px;color:#a35a1a;font-size:11px}
+.promobar .dot{width:13px;height:13px;border-radius:50%;background:#e8422f;color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.promobar .x{margin-left:auto;color:#b98d6b;font-size:15px}
+.buyrow{height:62px;display:flex;align-items:center;gap:2px;padding:0 8px 6px}
+.mini2{flex:0 0 42px;text-align:center;font-size:9.5px;color:#555;line-height:1.35;position:relative}
+.mini2 b{display:block;font-size:17px;font-weight:400;color:#333}
+.badge{position:absolute;top:-3px;right:3px;background:#e1251b;color:#fff;font-size:8px;border-radius:8px;padding:0 4px}
+.btncart{flex:1;height:41px;background:#ffedd8;color:#b96b16;border-radius:21px 0 0 21px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600}
+.btnbuy{flex:1;height:41px;background:#e1251b;color:#fff;border-radius:0 21px 21px 0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;font-weight:600;line-height:1.2}
+.btnbuy small{font-size:9.5px;font-weight:400;opacity:.9}
+
+/* 热区 */
+.hot{position:absolute;border:1.5px dashed rgba(110,168,254,.5);background:rgba(110,168,254,.045);border-radius:5px;cursor:pointer;transition:background .16s,border-color .16s,box-shadow .16s;z-index:5}
+.hot.b{border-color:rgba(150,160,175,.42);background:rgba(150,160,175,.035)}
+.hot:hover{background:rgba(110,168,254,.2);border-color:var(--blue);box-shadow:0 0 0 2px rgba(110,168,254,.18)}
+.hot.b:hover{background:rgba(180,190,205,.18);border-color:#c3ccd8}
+.hot.active{background:rgba(110,168,254,.24);border:2px solid var(--blue);box-shadow:0 0 0 3px rgba(110,168,254,.22)}
+.hot .tag{position:absolute;top:3px;left:4px;font-size:10px;color:#0b3d7a;background:rgba(255,255,255,.92);padding:1px 6px;border-radius:4px;white-space:nowrap;opacity:0;transition:opacity .16s;pointer-events:none;font-weight:600}
+.hot.b .tag{color:#39404b}
+.hot:hover .tag,.hot.active .tag{opacity:1}
+.hot .num{position:absolute;right:4px;top:3px;font-size:10px;font-weight:700;color:var(--blue);opacity:.8}
+.hot.b .num{color:#98a2b0}
+.hot.active .num{color:#fff}
+.hotspots-off .hot{display:none}
+
+/* 详情图横滑区 */
+.gallery-block{background:#f5f6f8;padding:18px 0 22px;color:#222}
+.gallery-block h3{margin:0 14px 4px;font-size:14px;color:#222}
+.gallery-block p{margin:0 14px 12px;font-size:11.5px;color:#888}
+.gscroll{display:flex;gap:9px;overflow-x:auto;padding:0 14px 6px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.gscroll::-webkit-scrollbar{height:4px}
+.gscroll::-webkit-scrollbar-thumb{background:#c8ccd3;border-radius:4px}
+.gitem{flex:0 0 62%;scroll-snap-align:center;border:0;padding:0;background:#fff;border-radius:8px;overflow:hidden;cursor:pointer;text-align:left}
+.gitem img{width:100%;display:block}
+.gitem span{display:block;font-size:10.5px;color:#555;padding:7px 9px;line-height:1.45}
+
+/* 图片查看器 */
+.viewer{position:absolute;inset:0;background:#000;z-index:40;display:none;flex-direction:column;color:#fff}
+.viewer.on{display:flex}
+.vhead{height:76px;display:flex;align-items:center;justify-content:center;position:relative;font-size:13px;letter-spacing:1px}
+.vhead .close{position:absolute;left:16px;top:24px;font-size:22px;cursor:pointer;color:#fff}
+.vhead .hint{position:absolute;bottom:2px;font-size:9.5px;color:#777;letter-spacing:0}
+.vstage{flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.vstage img{max-width:100%;max-height:100%;object-fit:contain}
+.varw{position:absolute;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;border:0;font-size:16px;cursor:pointer}
+.varw.l{left:8px}.varw.r{right:8px}
+.vfoot{padding:10px 12px 16px}
+.vskus{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto}
+.vskus button{flex:0 0 auto;background:#1c1c1c;color:#aaa;border:1px solid #444;border-radius:5px;padding:6px 9px;font-size:10px;white-space:nowrap}
+.vskus button.sel{border-color:#fff;color:#fff}
+.vbuy{display:flex;align-items:center;gap:8px}
+.vprice{color:#fff;font-size:19px;font-weight:600;white-space:nowrap}
+.vprice small{font-size:9px;background:#e1251b;color:#fff;padding:2px 4px;border-radius:3px;font-weight:400;margin-left:3px}
+.vbuy .c,.vbuy .b{flex:1;height:38px;border:0;border-radius:5px;font-size:12px;font-weight:600}
+.vbuy .c{background:#f7e3c8;color:#a35a1a}
+.vbuy .b{background:#e1251b;color:#fff}
+
+/* ---------- 右侧面板 ---------- */
+.side{background:var(--panel);border:1px solid var(--line);border-radius:14px;min-height:860px;display:flex;flex-direction:column;overflow:hidden}
+.tabbar{display:flex;border-bottom:1px solid var(--line);background:var(--panel2);flex:0 0 auto}
+.tabbar button{flex:1;background:none;border:0;color:var(--tx2);padding:14px 6px;font-size:12.5px;cursor:pointer;font-family:inherit;position:relative;white-space:nowrap}
+.tabbar button:hover{color:var(--tx)}
+.tabbar button.on{color:var(--blue);font-weight:600}
+.tabbar button.on:after{content:"";position:absolute;bottom:0;left:22%;right:22%;height:2px;background:var(--blue)}
+.pane{display:none;padding:20px 22px 28px;overflow-y:auto;max-height:796px}
+.pane.on{display:block}
+.pane::-webkit-scrollbar{width:6px}
+.pane::-webkit-scrollbar-thumb{background:#39424f;border-radius:6px}
+h2{font-size:16px;font-weight:600;margin:0 0 4px}
+.lead{color:var(--tx2);font-size:12.5px;margin:0 0 18px}
+.empty{color:var(--tx3);font-size:13px;text-align:center;padding:60px 10px;line-height:2}
+.empty b{display:block;color:var(--tx2);font-size:14px;font-weight:500;margin-bottom:6px}
+
+/* 说明卡 */
+.card-k{display:inline-block;font-size:10.5px;padding:2px 9px;border-radius:12px;margin-bottom:10px;letter-spacing:.5px}
+.card-k.a{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(110,168,254,.35)}
+.card-k.b{background:rgba(155,166,182,.12);color:var(--tx2);border:1px solid var(--line)}
+.card-title{font-size:19px;font-weight:600;margin:0 0 4px}
+.card-where{font-size:11.5px;color:var(--tx3);margin:0 0 18px}
+.field{border-top:1px solid var(--line);padding:13px 0}
+.field:last-of-type{border-bottom:1px solid var(--line)}
+.flabel{font-size:11px;color:var(--tx3);letter-spacing:1px;margin-bottom:5px;display:flex;align-items:center;gap:7px}
+.flabel i{font-style:normal;width:17px;height:17px;border-radius:4px;background:var(--panel2);color:var(--blue);display:inline-flex;align-items:center;justify-content:center;font-size:10px}
+.fbody{font-size:13.5px;color:var(--tx);line-height:1.78}
+.fbody em{font-style:normal;color:var(--amber)}
+.risk .fbody{border-left:2px solid var(--red);padding-left:11px;color:#f0c3bf}
+.goto{margin-top:16px;background:var(--blue-dim);border:1px solid rgba(110,168,254,.35);color:var(--blue);border-radius:8px;padding:9px 14px;font-size:12.5px;cursor:pointer;font-family:inherit}
+.goto:hover{background:rgba(110,168,254,.24)}
+
+/* 模块清单 */
+.group{margin-bottom:18px}
+.gh{font-size:11.5px;color:var(--tx3);letter-spacing:1px;margin:0 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.mlist{display:flex;flex-direction:column;gap:3px}
+.mitem{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;cursor:pointer;font-size:12.5px;color:var(--tx2)}
+.mitem:hover{background:var(--panel2);color:var(--tx)}
+.mitem .idx{font-size:10px;color:var(--tx3);width:20px;flex:0 0 auto}
+.mitem .ty{font-size:9.5px;padding:1px 5px;border-radius:4px;flex:0 0 auto}
+.mitem .ty.a{background:var(--blue-dim);color:var(--blue)}
+.mitem .ty.b{background:rgba(155,166,182,.12);color:var(--tx3)}
+.mitem .tx{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mitem .ar{color:var(--tx3);font-size:11px}
+
+/* 模拟判定 */
+.quiz{margin-bottom:26px;border:1px solid var(--line);border-radius:11px;padding:16px;background:var(--panel2)}
+.qnum{font-size:10.5px;color:var(--blue);letter-spacing:1px;margin-bottom:6px}
+.qtext{font-size:14px;line-height:1.75;margin:0 0 4px}
+.qsrc{font-size:11px;color:var(--tx3);margin:0 0 14px}
+.qrow{display:flex;gap:9px;margin-bottom:10px;flex-wrap:wrap}
+.qrow label{font-size:11.5px;color:var(--tx3);width:100%;margin-bottom:2px}
+select{background:#111722;color:var(--tx);border:1px solid var(--line);border-radius:7px;padding:8px 10px;font-size:12.5px;font-family:inherit;flex:1;min-width:150px}
+.qbtn{background:var(--blue);color:#08121f;border:0;border-radius:7px;padding:9px 16px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit}
+.qbtn:hover{filter:brightness(1.1)}
+.fb{display:none;margin-top:12px;padding:12px 14px;border-radius:8px;font-size:12.5px;line-height:1.75}
+.fb.on{display:block}
+.fb.ok{background:rgba(92,193,155,.1);border:1px solid rgba(92,193,155,.35);color:#a9e2cd}
+.fb.no{background:rgba(234,176,105,.09);border:1px solid rgba(234,176,105,.3);color:#f0cf9e}
+.fb b{display:block;margin-bottom:4px;font-size:12.5px}
+
+/* 笔记 */
+.note h3{font-size:13.5px;margin:22px 0 8px;color:var(--blue);font-weight:600}
+.note h3:first-child{margin-top:0}
+.note p,.note li{font-size:13px;color:var(--tx);line-height:1.85}
+.note ul{padding-left:18px;margin:6px 0}
+.note li{margin-bottom:6px}
+.note table{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0}
+.note th,.note td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+.note th{color:var(--tx3);font-weight:500;background:var(--panel2)}
+.note a{color:var(--blue);text-decoration:none;word-break:break-all}
+.note a:hover{text-decoration:underline}
+.callout{border-left:2px solid var(--amber);background:var(--amber-dim);padding:10px 14px;border-radius:0 8px 8px 0;font-size:12.5px;margin:12px 0}
+.tools{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap;justify-content:center}
+.tbtn{background:var(--panel);border:1px solid var(--line);color:var(--tx2);border-radius:7px;padding:7px 12px;font-size:11.5px;cursor:pointer;font-family:inherit}
+.tbtn:hover{color:var(--tx);border-color:#465062}
+.tbtn.on{color:var(--blue);border-color:rgba(110,168,254,.45);background:var(--blue-dim)}
+.legend{text-align:center;font-size:11px;color:var(--tx3);margin-top:9px}
+.legend span{color:var(--blue)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>京东商详页 · 信息载体与取证预习</h1>
+    <p class="sub">Apple iPhone 18 Pro 折叠机（拍拍 / 全球购买手店）真实页面快照 · 11 段截图拼接为连续长页 · 点击任意标注查看模块作用</p>
+    <div class="chips">
+      <span class="chip hl">连续长页 · 像滑手机一样滚动</span>
+      <span class="chip">27 个可点热区</span>
+      <span class="chip">A 类五层 / B 类两层</span>
+      <span class="chip">详情图左右滑 + 点击查看器</span>
+      <span class="chip">模拟判定 · 页内笔记</span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- ================= 手机 ================= -->
+    <div>
+      <div class="phone-shell">
+        <div class="screen">
+          <div class="scroll" id="scroll">
+            <div class="page-canvas" id="canvas">
+              <img src="assets/page-long.jpg" alt="京东商品详情页连续长截图" draggable="false">
+            </div>
+            <section class="gallery-block">
+              <h3>商品详情图 · 左右滑动</h3>
+              <p>原页共 9 张，这里展示 3 张样本；点击任意一张进入图片查看界面</p>
+              <div class="gscroll" id="gscroll"></div>
+            </section>
+          </div>
+
+          <div class="chrome">
+            <div class="status"><span>17:05</span><span class="icons"><span class="sig"><i style="height:4px"></i><i style="height:6px"></i><i style="height:8px"></i><i style="height:10px"></i></span> 5G <span class="bat">87</span></span></div>
+            <div class="navrow" id="navrow">
+              <div class="back">‹</div>
+              <div class="search">⌕ &nbsp;iphone18promax</div>
+              <div class="navicons"><span class="mini">☆</span><span class="mini">↗</span><span class="mini">···</span></div>
+            </div>
+            <div class="tabs" id="tabs">
+              <div data-seg="0" class="active">商品</div><div data-seg="1">大家评</div><div data-seg="5">详情</div><div data-seg="3">推荐</div>
+            </div>
+          </div>
+
+          <div class="bottombar">
+            <div class="promobar"><span class="dot">!</span>下单享限时立减 ¥61，即将过期<span class="x">×</span></div>
+            <div class="buyrow">
+              <div class="mini2"><b>⌂</b>店铺</div>
+              <div class="mini2"><b>☺</b>客服</div>
+              <div class="mini2"><b>▣</b>购物车<span class="badge">3</span></div>
+              <div class="btncart">加入购物车</div>
+              <div class="btnbuy">到手价 ¥17205.13<small>立即购买</small></div>
+            </div>
+          </div>
+
+          <div class="viewer" id="viewer">
+            <div class="vhead"><span class="close" id="vclose">×</span><span id="vcount">1 / 3</span><span class="hint">原页 9 张 · 此处 3 张样本</span></div>
+            <div class="vstage"><img id="vimg" src="" alt="详情图"><button class="varw l" id="vprev">‹</button><button class="varw r" id="vnext">›</button></div>
+            <div class="vfoot">
+              <div class="vskus"><button>18Pro 黑色 6.3 英寸, 256G【全国联保】</button><button class="sel">iPhoneDuo 星光白色 7.6 英寸, 256G【全国联保】</button><button>iPhoneDuo 夜空色 7.6 英寸, 256G【全国联保】</button></div>
+              <div class="vbuy"><span class="vprice">¥17205.13<small>新人到手价</small></span><button class="c">加入购物车</button><button class="b">立即购买</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tools">
+        <button class="tbtn on" id="toggleHot">隐藏热区</button>
+        <button class="tbtn" id="toTop">回到顶部</button>
+        <button class="tbtn" id="toSpec">跳到规格参数</button>
+        <button class="tbtn" id="toGallery">详情图轮播</button>
+      </div>
+      <div class="legend"><span>蓝色虚框</span> = 承载商品信息（五层说明）　·　灰色虚框 = 纯功能按钮（仅名称与作用）</div>
+    </div>
+
+    <!-- ================= 右侧面板 ================= -->
+    <div class="side">
+      <div class="tabbar">
+        <button class="on" data-pane="card">说明卡</button>
+        <button data-pane="list">模块清单</button>
+        <button data-pane="quiz">模拟判定</button>
+        <button data-pane="note">预习笔记</button>
+      </div>
+
+      <div class="pane on" id="pane-card">
+        <div class="empty" id="emptyCard"><b>点击左侧页面上的虚框</b>这里会展开该模块的说明。<br>蓝色框 = 承载商品信息，展开五层；<br>灰色框 = 纯功能按钮，只给名称与作用。<br><br>也可以从「模块清单」直接跳转。</div>
+        <div id="cardBody" style="display:none"></div>
+      </div>
+
+      <div class="pane" id="pane-list"><h2>模块清单</h2><p class="lead">按页面从上到下排列 · 点击任一项可跳到对应位置并展开说明</p><div id="listBody"></div></div>
+
+      <div class="pane" id="pane-quiz">
+        <h2>模拟判定</h2>
+        <p class="lead">给一句页面上的真实宣传语，判断它属于哪类表达、该从哪里取证。对应项目里「漏放（假阴性）」与「误杀（假阳性）」两类错误。</p>
+        <div id="quizBody"></div>
+      </div>
+
+      <div class="pane note" id="pane-note">
+        <h2>预习笔记</h2>
+        <p class="lead">结论 · 术语 · 两类误判 · 来源</p>
+
+        <h3>一、这页在解决什么</h3>
+        <p>预习目标不是背下商详页有哪些模块，而是回答：<em>当 AI 要判断「商家宣传」和「商品实际」是否对得上时，页面上哪些组件能当证据、哪些不能。</em>项目里出现的两类错误，都能在信息载体上找到对应的位置。</p>
+
+        <h3>二、四条结论</h3>
+        <ul>
+          <li><b>取证通道错配 → 漏放。</b>参数造假发生在结构化事实区（规格参数表、已选 SKU），审核规则却常盯极限词／绝对化用语。商品一个「最」字没说，128G 写成 256G、三级能效写成一级，文本完全合规、事实却是造假。</li>
+          <li><b>语用类型误判 → 误杀。</b>「Pro 再超前」「景深效果超惊艳」「如丝般顺滑」是体验修辞，不可证伪；当成可核验事实去判，就会把正常营销话术误判成欺诈。</li>
+          <li><b>大量硬参数只存在于图片里。</b>本页「4800 万像素融合式主摄」「A20 Pro 2 纳米制程 / 7 核图形处理器」都写在详情长图上，而规格参数表只列到品牌、编号、系统、机型。只取结构化字段或只查文本，这两处宣称就整体落在取证范围之外。</li>
+          <li><b>矛盾藏在字段之间，不在单个字段里。</b>店铺公告图写「全新未拆封 · 全国联保」，常见问题却写「二手商品的来源是什么」，服务承诺行同时出现「免费上门退换」与「不支持 7 天无理由退货」。单看每处都不一定违规，交叉比对才露馅。</li>
+        </ul>
+
+        <h3>三、两类误判在页面上的位置</h3>
+        <table>
+          <tr><th>错误</th><th>高发载体</th><th>典型样本</th><th>成因</th></tr>
+          <tr><td>漏放<br>假阴性</td><td>结构化字段、图片内硬参数、商家单方声明</td><td>规格参数表 / 已选规格 / 详情图参数宣称 / 店铺公告图</td><td>无敏感词、无绝对化用语，或信息只在图片／被忽略的模块里</td></tr>
+          <tr><td>误杀<br>假阳性</td><td>营销修辞、体验描述、评价文本</td><td>「Pro 再超前」「超惊艳」「正品可以入手」</td><td>不可证伪的表达被当作事实陈述处理</td></tr>
+        </table>
+        <div class="callout">注意：本页是<strong>第三方买手店 / 拍拍二手</strong>商品，不是京东自营。店铺自行发布的「店内优选」声明与平台结构化字段混在同一屏里，来源级别不同——这本身就是取证时该先分层的原因。</div>
+
+        <h3>四、说明卡分级依据</h3>
+        <p><b>A 类（蓝色，五层）</b>：模块本身承载或转述商品信息，因此展开「名称 / 功能作用 / 承载什么信息 / 可核验性 / 取证建议与误判风险」。<br><b>B 类（灰色，两层）</b>：模块只是导航、操作或跳转，不承载商品事实，只给名称与功能，避免把交互控件也算进证据范围。</p>
+
+        <h3>五、术语</h3>
+        <table>
+          <tr><th>术语</th><th>含义</th></tr>
+          <tr><td>SPU / SKU</td><td>SPU 是商品聚合信息的最小单位（如某机型）；SKU 是库存最小单元，由颜色、容量、尺寸等销售属性组合而成，下单时点选。</td></tr>
+          <tr><td>类目属性 / 必填项</td><td>商家发布商品时按类目填写的结构化字段；不同类目必填项不同，平台接口用 true 标识必填。</td></tr>
+          <tr><td>京东价 / 划线价 / 到手价</td><td>京东价为销售价；划线价是参考价并非原价；预估到手价是在标价基础上扣减折扣、券、红包后的估算，页面已声明会因登录态与优惠差异而变化。</td></tr>
+          <tr><td>事实型 / 承诺型 / 评价型 / 修辞型</td><td>本页自用的信息分类：可证伪的客观陈述 / 对服务或时效的保证 / 用户主观判断 / 不可证伪的营销表达。</td></tr>
+          <tr><td>漏放 / 误杀</td><td>假阴性（该拦未拦）／假阳性（不该拦却拦了）。</td></tr>
+        </table>
+
+        <h3>六、可核查来源</h3>
+        <ul>
+          <li><a href="https://jos.jd.com/commondoc?listId=436" target="_blank">京东开放平台 · 商品发布接口</a> —— 明确「不同类目的商品可能有不同的必填项」，必填项以 true 标识。</li>
+          <li><a href="https://jdw-rule.jd.hk/detail?ruleId=1317754600069242880" target="_blank">京东全球购开放平台 · 商品信息规范总则</a> —— 类目、品牌、标题、视觉规范、商品属性（完整／规范／准确）、SPU/SKU、价格、发货、售后。</li>
+          <li><a href="https://helpcenter.jd.com/vender/issue/1000-45466.html" target="_blank">京东商家帮助中心 · 类目资质说明</a> —— 食品经营许可、出版物经营许可、药品经营许可等在发布商品环节触发校验。</li>
+          <li><a href="https://m.gelonghui.com/news/5182616" target="_blank">京东 2025 年报点评（分品类收入）</a> —— 电子产品及家用电器 6051 亿元、日用百货 4187 亿元；官方仅披露两大类，无「GMV 前三品类」口径。</li>
+        </ul>
+        <p style="color:var(--tx3);font-size:11.5px;margin-top:14px">页面素材：用户提供的 15 张京东 App 实拍截图（2026-11-05 17:05–17:08，同一设备／账号）。规范类来源为全球购版总则与开放平台接口，国内版同名规范字段框架共通、未逐条复核；截图内容以页面实际呈现为准，不作为京东官方规则表述。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/segments.js"></script>
+<script>
+const SEG=window.JD_SEG.seg, TOTAL=window.JD_SEG.total, GROUPS=window.JD_SEG.groups;
+// s 段号 / a,b 段内起止比例 / x,w 横向百分比 / k 分类 / n 名称 / r 作用 / i 信息 / v 可核验性 / e 取证建议 / z 误判风险
+const H=[
+{s:0,a:0,b:.43,x:3,w:94,k:'A',n:'商品主图',r:'展示商品外观形态，是主图轮播入口；点击进入全屏图片查看器，可左右切换详情图。',i:'事实型与修辞型混合。渲染图展示折叠形态、三摄、配色，但它是商家提供的视觉素材，不是可核验参数。',v:'外观本身不可直接证伪，需要与结构化字段和用户实拍交叉。',e:'把主图当作「商家声称长什么样」；实况取规格参数表、买家晒图与开箱测评。',z:'把渲染图当实物证据 → 误杀；主图上的文字宣称若未进入 OCR 取证 → 漏放。'},
+{s:0,a:.43,b:.60,x:3,w:94,k:'A',n:'促销横幅',r:'大促氛围与利益点楼层，强化价格与时效感知。',i:'承诺型（发货时效、领券立减）+ 修辞型（「又便宜又好」）。',v:'承诺部分可与配送信息、券说明、订单履约数据核验。',e:'取配送行「预计 11 月 8 日前发货」、券行与服务说明，不取横幅形容词。',z:'「至快次日达」是上限承诺，被当成必然事实会误杀；实际长期不发货却只看参数会漏放。'},
+{s:0,a:.60,b:.70,x:3,w:94,k:'A',n:'价格区',r:'展示成交价与价格锚点，是下单决策的核心数值。',i:'事实型（当前标价）+ 承诺型（新人到手价、已省金额）。',v:'机器可直接比对；京东价、划线价、预估到手价在页尾「价格说明」里有官方定义与计算公式。',e:'与「服务 · 价格说明」第 1／2／4 条、券行、订单结算页交叉验证。',z:'划线价被明确定义为参考价而非原价；把「已省 5000+」当可证伪的优惠事实容易误杀。'},
+{s:0,a:.70,b:.79,x:3,w:94,k:'B',n:'优惠权益栏',r:'展示可领取的赠品、京豆返还与优惠券入口，点击领券或查看活动规则。'},
+{s:0,a:.79,b:.875,x:3,w:94,k:'A',n:'商品标题',r:'用关键词概括商品，承担搜索召回与用户识别；下方标签展示店铺年限与商品属性标签。',i:'事实型（品牌、型号、网络制式、品类）+ 营销型（关键词堆叠）。',v:'型号、版本、制式可与规格参数表「机型 Apple iPhone 18 Pro」及已选 SKU 比对。',e:'标题 ↔ 规格参数 ↔ 已选 SKU 三处交叉；标题里 18ProMax／18Pro／Duo 并列多型号属关键词堆叠，以规格参数表为准。',z:'漏放高发：关键词堆砌不含极限词，若实际机型与参数表不一致，纯文本规则查不出来。'},
+{s:0,a:.875,b:.93,x:3,w:94,k:'A',n:'已选规格（SKU）',r:'显示当前选中的销售属性组合，点击进入规格选择面板。',i:'事实型，结构化程度最高（颜色／尺寸／容量／服务承诺）。',v:'机器可直接比对；SKU 是商品不可再分的最小单元。',e:'与规格参数表、详情图文宣称、包装清单交叉。',z:'参数造假最常落在这里（容量、版本、保修范围），却不含任何极限词 → 漏放典型。'},
+{s:0,a:.93,b:.975,x:3,w:94,k:'A',n:'配送信息',r:'告知履约方式、预计发货／送达时间与配送范围。',i:'承诺型（时效）+ 事实型（包邮、三方快递）。',v:'需与订单履约数据、服务说明「配送费说明」核验。',e:'价格说明第 5 条明确配送费受距离、难度、时段、天气、运力影响，页面展示仅为预估。',z:'时效是预估而非保证，按事实陈述判读会误杀；长期不发货却无文本违规会漏放。'},
+{s:0,a:.975,b:1,x:3,w:94,k:'A',n:'服务承诺栏',r:'集中展示售后政策，点击展开明细。',i:'承诺型，且同一行内存在表述张力（免费上门退换 与 不支持 7 天无理由）。',v:'需与平台售后规则、类目规则、商家自声明比对。',e:'与「常见问题」、店铺公告图交叉。',z:'两组承诺并存时只看其中一条容易漏放或误杀，是「字段间不一致」的取样点。'},
+
+{s:1,a:0,b:.28,x:3,w:94,k:'A',n:'买家评价区',r:'展示评价数量、好评率与聚合标签，提供社会证明。',i:'评价型（用户主观）+ 事实型（数量与好评率由平台统计）。',v:'统计值平台可核；具体评价文本不可证伪。',e:'好评率取平台统计；商品真伪不取评价文本，但「不是新机是二手机」这类具体指控是线索。',z:'把「正品可以入手」「不是新机是二手机」当事实证据 → 误杀；完全忽略这类线索 → 漏放。'},
+{s:1,a:.5,b:.85,x:3,w:94,k:'A',n:'开箱测评',r:'聚合用户实拍视频与图片，辅助判断实物状态。',i:'事实型线索（实物照片），但载体是非结构化图片。',v:'需 OCR 与视觉核验，机器难以直接比对。',e:'与规格参数表、主图渲染图比对颜色、接口、包装形态。',z:'图片里的造假信息若未进入 OCR 取证链路 → 漏放。'},
+{s:1,a:.85,b:1,x:3,w:94,k:'B',n:'问大家',r:'买家提问与商家／已购用户回答的问答区，可提问或查看全部回答。'},
+
+{s:2,a:.12,b:.6,x:3,w:94,k:'A',n:'店铺信息卡',r:'展示经营主体与店铺表现，回答「谁在卖」。',i:'事实型（评分、关注数、经营年限由平台统计）+ 承诺型（退货率表述）。',v:'平台统计数据可核；经营资质需与类目资质公示比对。',e:'与类目资质规则、售后服务政策交叉。',z:'店铺表现好不等于商品描述真实；用店铺评分替代商品取证会漏放。'},
+{s:2,a:.6,b:.72,x:3,w:94,k:'B',n:'店铺快捷入口',r:'跳转店铺首页与该店全部商品列表。'},
+{s:2,a:.85,b:1,x:3,w:94,k:'B',n:'推荐楼层标题',r:'推荐楼层的分隔标题，向下引出关联商品流。'},
+
+{s:3,a:0,b:.62,x:3,w:94,k:'A',n:'推荐商品卡',r:'关联推荐楼层，承担跨商品导流。',i:'每张卡含标题、价格与促销标签，属于其他商品的信息。',v:'价格与宣称需各自核验，但不属于当前商品的证据范围。',e:'不应纳入当前商品的宣传—事实一致性判定。',z:'把推荐位的话术算到本商品头上 → 误杀（取证范围错配）。'},
+{s:3,a:.62,b:1,x:3,w:94,k:'A',n:'活动专区',r:'店铺储值／代购会员卡的促销楼层。',i:'承诺型（充值返利比例，如充 500 送 10）。',v:'需与活动规则页核验，卡片上的数字脱离条件无法判读。',e:'取「具体使用规则详见活动页面」的落地规则，不取卡片视觉数字。',z:'返利比例是条件承诺，脱离条件判读容易误杀。'},
+
+{s:4,a:.12,b:1,x:3,w:94,k:'A',n:'店铺公告图',r:'商家自行发布的购买须知，用大幅视觉覆盖设定交易条件。',i:'承诺型 + 事实型混合，且是商家单方声明，不是平台结构化字段；含「非质量问题均不支持 7 天无理由退换」「下单即代表认同」。',v:'需与平台售后规则、类目规则、服务承诺行比对；「全新未拆封」与「二手商品来源」常见问题存在张力。',e:'取规格参数表、常见问题、服务承诺行、平台售后规则逐条交叉。',z:'最典型样本：整张声明写在图片里、没有极限词、却直接改变消费者权利，纯文本敏感词规则必然漏放；而「新品发售期价格浮动不稳」是合理说明，误判成免责欺诈则是误杀。'},
+
+{s:5,a:.2,b:1,x:3,w:94,k:'A',n:'商品介绍图',r:'商家上传的图文详情开头，用品牌叙事建立产品印象。',i:'修辞型为主（「Pro 再超前」），夹杂事实型（产品名与系列名）。',v:'品牌口号不可证伪；产品型号需与规格参数表比对。',e:'只提取可核验的名词性实体，忽略形容性口号。',z:'把「再超前」这类比较级当绝对化用语或可证伪事实 → 误杀高发。'},
+
+{s:6,a:0,b:.55,x:3,w:94,k:'A',n:'商品详情图 · 影像参数',r:'影像卖点宣传图，硬参数与效果描述混排。',i:'事实型（4800 万像素、可变光圈）+ 修辞型（更亮眼、超惊艳），且全部写在图片里。',v:'参数部分可与规格参数表或品牌官方参数比对；效果描述不可证伪。',e:'需 OCR 提取图片文字，再与规格参数表、官方机型参数交叉。',z:'漏放高发：像素数值是硬参数却只存在于图片中；只取结构化字段或只查极限词，参数造假可完全避开。'},
+{s:6,a:.55,b:1,x:3,w:94,k:'A',n:'商品详情图 · 引导文案',r:'承接下方 Pro 控制功能的引导文案。',i:'修辞型（「超绝」）+ 事实型（存在定制控制选项）。',v:'「超绝」不可证伪；控制选项可在下方功能图示中观察。',e:'不与参数表比对，归入营销表达。',z:'误杀高发：夸张修饰被当作欺诈宣称。'},
+
+{s:7,a:0,b:.5,x:3,w:94,k:'A',n:'商品详情图 · 功能图示',r:'图示化展示相机专业控制功能。',i:'事实型（功能存在与否），但只以图示呈现。',v:'需与实机功能或官方说明核验，页面内无结构化佐证。',e:'归入「图内宣称」，需 OCR + 外部源。',z:'功能不存在却只写在图上 → 漏放。'},
+{s:7,a:.5,b:1,x:3,w:94,k:'A',n:'商品详情图 · 性能参数',r:'核心性能参数宣传。',i:'事实型（制程、核心数、VC 均热板），写在黑底图片上。',v:'可与品牌官方芯片参数比对，但本页规格参数表未列这些项。',e:'规格参数表只到「机型 Apple iPhone 18 Pro」，芯片细节无结构化佐证，只能外部核验。',z:'漏放高发：硬参数只存在于宣传图且规格参数表缺位，形成取证通道错配。'},
+
+{s:8,a:0,b:.45,x:3,w:94,k:'A',n:'规格参数表',r:'平台结构化属性区，是「商品是什么」的机器可读答案。',i:'事实型，结构化程度最高：品牌、商品编号、操作系统、系统、主体、机型，来源于商家发布商品时填写的类目属性。',v:'机器可直接比对字段—值对，也能与标题、已选 SKU、详情图文交叉。',e:'审核取证的第一入口；不同类目必填属性不同，由平台发布规则决定。',z:'漏放核心：参数造假（型号、编号、容量）不含任何极限词，敏感词规则完全失效，必须靠字段值与外部基准／其他模块交叉比对。'},
+{s:8,a:.45,b:.85,x:3,w:94,k:'A',n:'常见问题',r:'商家对商品来源与售后的补充说明。',i:'事实型 + 承诺型，与首屏「全新未拆封」、蓝色海报声明构成同一事实的多处表述。',v:'需与蓝色海报、服务承诺行、店铺类目（拍拍二手）交叉。',e:'典型的跨模块交叉验证点。',z:'只看单条看不出问题；「全新未拆封」与「二手商品来源」并存才是矛盾所在 → 漏放。'},
+{s:8,a:.85,b:1,x:3,w:94,k:'B',n:'平台提示',r:'提示不要脱离平台交易，并说明纠纷处理边界。'},
+
+{s:9,a:0,b:.95,x:3,w:94,k:'A',n:'价格说明',r:'平台对京东价、划线价、折扣、预估到手价、配送费、异常问题的统一定义。',i:'规则型（定义），不是商品事实，却是判读其他模块的标尺。',v:'官方规则文本，可直接引用。',e:'用它给价格区、促销横幅、券行的宣称定标尺。',z:'跳过这段直接判「划线价虚高」「已省 5000+」会误杀；预估到手价本就声明会因优惠券、红包、登录态产生差异。'},
+
+{s:10,a:0,b:1,x:3,w:94,k:'B',n:'反馈与推荐入口',r:'对商品详情页提反馈的入口，以及页面底部的关联推荐楼层。'}
+];
+H.forEach((h,i)=>{h.id=i;const [y0,y1]=SEG[h.s];h.y=y0+(y1-y0)*h.a;h.h=(y1-y0)*(h.b-h.a);});
+
+const canvas=document.getElementById('canvas');
+const scroll=document.getElementById('scroll');
+const cardBody=document.getElementById('cardBody');
+const emptyCard=document.getElementById('emptyCard');
+let active=null;
+
+H.forEach(h=>{
+  const d=document.createElement('div');
+  d.className='hot'+(h.k==='B'?' b':'');
+  d.style.left=h.x+'%';d.style.width=h.w+'%';
+  d.style.top=(h.y/TOTAL*100)+'%';d.style.height=(h.h/TOTAL*100)+'%';
+  d.innerHTML='<span class="num">'+String(h.id+1).padStart(2,'0')+'</span><span class="tag">'+h.n+'</span>';
+  d.addEventListener('click',()=>showCard(h.id,false));
+  canvas.appendChild(d);h.el=d;
+});
+
+const F=[['名称与作用','r'],['承载什么信息','i'],['可核验性','v'],['取证建议','e'],['误判风险','z']];
+function showCard(id,doScroll){
+  const h=H[id];
+  if(active!==null){H[active].el.classList.remove('active')}
+  active=id;h.el.classList.add('active');
+  emptyCard.style.display='none';cardBody.style.display='block';
+  let html='<span class="card-k '+(h.k==='A'?'a':'b')+'">'+(h.k==='A'?'A 类 · 承载商品信息':'B 类 · 纯功能组件')+'</span>'+
+    '<div class="card-title">'+h.n+'</div><div class="card-where">'+GROUPS[h.s]+' · 模块 '+String(id+1).padStart(2,'0')+' / '+H.length+'</div>';
+  if(h.k==='A'){
+    html+='<div class="field"><div class="flabel"><i>1</i>名称与作用</div><div class="fbody">'+h.r+'</div></div>'+
+      '<div class="field"><div class="flabel"><i>2</i>承载什么信息</div><div class="fbody">'+h.i+'</div></div>'+
+      '<div class="field"><div class="flabel"><i>3</i>可核验性</div><div class="fbody">'+h.v+'</div></div>'+
+      '<div class="field"><div class="flabel"><i>4</i>取证建议</div><div class="fbody">'+h.e+'</div></div>'+
+      '<div class="field risk"><div class="flabel"><i>5</i>误判风险</div><div class="fbody">'+h.z+'</div></div>';
+  }else{
+    html+='<div class="field"><div class="flabel"><i>1</i>名称</div><div class="fbody">'+h.n+'</div></div>'+
+      '<div class="field"><div class="flabel"><i>2</i>功能</div><div class="fbody">'+h.r+'</div></div>'+
+      '<div class="callout" style="margin-top:16px">该模块不承载商品事实，只做导航或操作，因此不进入取证范围，也不展开五层说明。</div>';
+  }
+  html+='<button class="goto" id="gotoBtn">在长页中定位这个模块 →</button>';
+  cardBody.innerHTML=html;
+  document.getElementById('gotoBtn').onclick=()=>jumpTo(h.y+h.h/2);
+  switchPane('card');
+  if(doScroll)jumpTo(h.y+h.h/2);
+}
+function jumpTo(y){const scale=canvas.clientWidth/880;scroll.scrollTo({top:Math.max(0,y*scale-scroll.clientHeight*.42),behavior:'smooth'});}
+
+// 模块清单
+const listBody=document.getElementById('listBody');
+let lh='';
+GROUPS.forEach((g,gi)=>{
+  const items=H.filter(h=>h.s===gi);
+  if(!items.length)return;
+  lh+='<div class="group"><div class="gh">'+String(gi+1).padStart(2,'0')+' &nbsp; '+g+'</div><div class="mlist">';
+  items.forEach(h=>{lh+='<div class="mitem" data-id="'+h.id+'"><span class="idx">'+String(h.id+1).padStart(2,'0')+'</span><span class="ty '+h.k.toLowerCase()+'">'+h.k+'</span><span class="tx">'+h.n+'</span><span class="ar">›</span></div>';});
+  lh+='</div></div>';
+});
+listBody.innerHTML=lh;
+listBody.querySelectorAll('.mitem').forEach(el=>el.onclick=()=>showCard(+el.dataset.id,true));
+
+// 面板切换
+function switchPane(name){
+  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('on',b.dataset.pane===name));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==='pane-'+name));
+}
+document.querySelectorAll('.tabbar button').forEach(b=>b.onclick=()=>switchPane(b.dataset.pane));
+
+// 吸顶导航
+scroll.addEventListener('scroll',()=>{
+  const t=scroll.scrollTop;
+  const solid=t>260;
+  document.querySelector('.chrome').classList.toggle('solid',solid);
+  document.getElementById('navrow').classList.toggle('solid',solid);
+  document.querySelector('.status').classList.toggle('solid',solid);
+  document.getElementById('tabs').classList.toggle('on',solid);
+  const scale=canvas.clientWidth/880;
+  let seg=0;SEG.forEach((s,i)=>{if(t>=s[0]*scale-300)seg=i;});
+  let tab=0;if(seg>=1&&seg<3)tab=1;else if(seg>=5&&seg<10)tab=2;else if(seg===3||seg===4)tab=3;
+  document.querySelectorAll('#tabs div').forEach((d,i)=>d.classList.toggle('active',i===tab));
+},{passive:true});
+document.querySelectorAll('#tabs div').forEach(d=>d.onclick=()=>jumpTo(SEG[+d.dataset.seg][0]+200));
+
+// 工具条
+document.getElementById('toggleHot').onclick=function(){const off=document.getElementById('canvas').classList.toggle('hotspots-off');this.textContent=off?'显示热区':'隐藏热区';this.classList.toggle('on',!off);};
+document.getElementById('toTop').onclick=()=>scroll.scrollTo({top:0,behavior:'smooth'});
+document.getElementById('toSpec').onclick=()=>jumpTo(SEG[8][0]+300);
+document.getElementById('toGallery').onclick=()=>scroll.scrollTo({top:scroll.scrollHeight,behavior:'smooth'});
+
+// 详情图轮播与查看器
+const G=[
+ {f:'assets/gallery-1.jpg',c:'超宽阔的 iPhone 显示屏 · 纳米纹理内屏减少眩光'},
+ {f:'assets/gallery-2.jpg',c:'常用 App 并排铺开 · 双电池系统 · 2 纳米制程'},
+ {f:'assets/gallery-3.jpg',c:'折叠、站立、各种拗造型'}
+];
+const gs=document.getElementById('gscroll');
+G.forEach((g,i)=>{const b=document.createElement('button');b.className='gitem';b.innerHTML='<img src="'+g.f+'" alt=""><span>'+g.c+'</span>';b.onclick=()=>openViewer(i);gs.appendChild(b);});
+let vi=0;
+const viewer=document.getElementById('viewer');
+function renderV(){document.getElementById('vimg').src=G[vi].f;document.getElementById('vcount').textContent=(vi+1)+' / 3';}
+function openViewer(i){vi=i;renderV();viewer.classList.add('on');}
+document.getElementById('vclose').onclick=()=>viewer.classList.remove('on');
+document.getElementById('vprev').onclick=()=>{vi=(vi+2)%3;renderV();};
+document.getElementById('vnext').onclick=()=>{vi=(vi+1)%3;renderV();};
+document.querySelectorAll('.vskus button').forEach((b,i)=>b.onclick=()=>{document.querySelectorAll('.vskus button').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');});
+
+// 模拟判定
+const Q=[
+ {q:'「4800 万像素融合式主摄，带可变光圈」',src:'出自详情页黑底宣传图（模块 19）',type:'事实型',evi:'详情图文（需 OCR）',
+  fb:'这是硬参数，却只写在一张图片里，而规格参数表根本没有像素、光圈字段。只查极限词或只读结构化字段，这类造假完全落在取证范围之外 —— 典型的<strong>漏放（假阴性）</strong>。正确链路是 OCR 提取图内文字，再与规格参数表／品牌官方参数比对。'},
+ {q:'「Pro 再超前」「景深效果超惊艳」',src:'出自商品介绍长图与影像宣传图（模块 18／20）',type:'修辞型',evi:'不该当证据',
+  fb:'两者都是不可证伪的体验与程度描述，没有可核验的事实主张。把它们当作可判真假的陈述，就会把正常营销话术误判成欺诈 —— 典型的<strong>误杀（假阳性）</strong>。'},
+ {q:'「全新未拆封 · 全国联保」「非质量问题均不支持 7 天无理由退换」',src:'出自店铺公告图（模块 17）',type:'承诺型',evi:'跨模块交叉验证',
+  fb:'商家单方声明，整张写在图片里、没有一个极限词，却直接改变消费者权利；同时与「常见问题 · 二手商品的来源是什么」形成矛盾。纯文本敏感词规则必然<strong>漏放</strong>，需与规格参数表、常见问题、服务承诺行、平台售后规则逐条交叉。'},
+ {q:'标题写「18ProMax 全网通 18Pro 双卡 iPhone Duo」，规格参数表写「机型 Apple iPhone 18 Pro」',src:'跨模块对照（模块 05 与 23）',type:'事实型',evi:'规格参数表',
+  fb:'标题是关键词堆叠，字段间的<strong>不一致</strong>才是线索，单看任何一处都不违规。判定应以结构化规格参数表为基准做交叉比对，而不是逐条文本查敏感词。'}
+];
+const TYPES=['事实型','承诺型','评价型','修辞型'];
+const EVIS=['规格参数表','详情图文（需 OCR）','服务说明','评价区','跨模块交叉验证','不该当证据'];
+const qb=document.getElementById('quizBody');
+Q.forEach((o,i)=>{
+  const d=document.createElement('div');d.className='quiz';
+  d.innerHTML='<div class="qnum">题目 '+String(i+1).padStart(2,'0')+' / '+Q.length+'</div><p class="qtext">'+o.q+'</p><p class="qsrc">'+o.src+'</p>'+
+   '<div class="qrow"><label>① 这句话属于哪类表达？</label><select class="qt">'+TYPES.map(t=>'<option>'+t+'</option>').join('')+'</select></div>'+
+   '<div class="qrow"><label>② AI 该从哪里取证？</label><select class="qe">'+EVIS.map(t=>'<option>'+t+'</option>').join('')+'</select></div>'+
+   '<button class="qbtn">提交判定</button><div class="fb"></div>';
+  d.querySelector('.qbtn').onclick=()=>{
+    const t=d.querySelector('.qt').value,e=d.querySelector('.qe').value,fb=d.querySelector('.fb');
+    const ok=(t===o.type&&e===o.evi);
+    fb.className='fb on '+(ok?'ok':'no');
+    fb.innerHTML='<b>'+(ok?'判定正确':'再想一下')+' · 参考：'+o.type+' / '+o.evi+'</b>'+o.fb;
+  };
+  qb.appendChild(d);
+});
+</script>
+</body>
+</html>
